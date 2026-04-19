@@ -31,7 +31,7 @@ set up if you have Python):
 
 ```bash
 # Option A — patched aioquic (Python). Listens on https://127.0.0.1:4436/wt.
-./server-aioquic/run.sh
+./server/run.sh
 
 # Option B — patched webtransport-go + quic-go (Go). Listens on https://127.0.0.1:4437/wt.
 ./server-quic-go/run.sh
@@ -85,7 +85,7 @@ independent-reproduction evidence on aioquic.
 ## Repository layout
 
 ```
-server-aioquic/        Patched aioquic reproducer (Python)
+server/        Patched aioquic reproducer (Python)
   demo.py              Minimal ASGI WT echo app
   patch.py             Adds SETTINGS_WEBTRANSPORT_MAX_SESSIONS (0xc671706a) to aioquic
   run.sh               Setup venv + install + patch + launch (:4436)
@@ -109,9 +109,11 @@ FINDINGS.md            Full investigation write-up
 REPRODUCE.md           Manual reproduction steps (for humans)
 ```
 
-## Filing
+## Filed as
 
-Intended for filing at [bugs.webkit.org](https://bugs.webkit.org/). A ready-to-use
-live reproducer is also hosted at **https://echo.web-transport.dev:4440/** — the
-cert there is CA-trusted (Let's Encrypt) so no certificate-hash pinning is
-required; leave the hash field empty.
+[WebKit bug **#312697**](https://bugs.webkit.org/show_bug.cgi?id=312697).
+
+A ready-to-use live reproducer is also hosted at
+**https://echo.web-transport.dev:4440/** — the cert there is CA-trusted
+(Let's Encrypt) so no certificate-hash pinning is required; leave the hash
+field empty.

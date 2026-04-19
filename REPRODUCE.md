@@ -28,7 +28,7 @@ cd server
 ./run.sh
 ```
 
-This creates a Python venv at `server-aioquic/.venv`, installs aioquic, applies a
+This creates a Python venv at `server/.venv`, installs aioquic, applies a
 one-line patch so aioquic emits `SETTINGS_WEBTRANSPORT_MAX_SESSIONS = 0xc671706a`
 (the pre-draft-13 code point Safari requires for session establishment), then
 starts the aioquic demo server on `https://127.0.0.1:4436/` with WebTransport

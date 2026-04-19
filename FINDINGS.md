@@ -103,8 +103,8 @@ Conclusion: the bidi-create hang is not a server-implementation idiosyncrasy.
 It reproduces the moment Safari's session negotiation succeeds, regardless of
 whether the server is written in Python (aioquic) or Zig (quic-zig).
 
-The repository's `server-aioquic/patch.py` applies this exact patch;
-`server-aioquic/run.sh` sets it up automatically.
+The repository's `server/patch.py` applies this exact patch;
+`server/run.sh` sets it up automatically.
 
 ## Independent reproduction on quic-go + webtransport-go
 
