@@ -7,11 +7,14 @@ work correctly, and the same page/script round-trips a bidirectional echo in
 Chrome in ~215 ms against the identical server. There is no error, no close,
 and no new QUIC stream on the wire.
 
-The failure reproduces on **two independent server codebases** — a pure-Zig
-WebTransport stack and patched [aioquic] (Python) — ruling out a server-specific
-cause. This repository contains a minimal reproducer.
+The failure reproduces on **three independent server codebases** — a pure-Zig
+WebTransport stack, patched [aioquic] (Python), and patched [webtransport-go]
++ [quic-go] (Go) — ruling out a server-specific cause. This repository contains
+two minimal reproducers (Python and Go) that anyone can run.
 
 [aioquic]: https://github.com/aiortc/aioquic
+[webtransport-go]: https://github.com/quic-go/webtransport-go
+[quic-go]: https://github.com/quic-go/quic-go
 
 ## Environment
 
@@ -23,14 +26,26 @@ cause. This repository contains a minimal reproducer.
 
 ## Reproduce in 60 seconds
 
-```bash
-# 1. Start the reproducer server (Python, uses patched aioquic).
-./server/run.sh           # listens on https://127.0.0.1:4436, serves /wt
+Pick one server (they reproduce identically; the aioquic path is fastest to
+set up if you have Python):
 
-# 2. Automated Safari + Chrome side-by-side.
+```bash
+# Option A — patched aioquic (Python). Listens on https://127.0.0.1:4436/wt.
+./server-aioquic/run.sh
+
+# Option B — patched webtransport-go + quic-go (Go). Listens on https://127.0.0.1:4437/wt.
+./server-quic-go/run.sh
+```
+
+Then drive both browsers against it:
+
+```bash
 npm install
-npm run test:safari       # drives Safari via safaridriver
-npm run test:chrome       # drives Chrome via Puppeteer (control)
+npm run test:safari        # drives Safari via safaridriver — reproduces hang
+npm run test:chrome        # Puppeteer control — passes
+
+# Targeting the Go server:
+WT_URL=https://127.0.0.1:4437/wt npm run test:safari
 ```
 
 Or [manually](REPRODUCE.md): open `client/index.html` in Safari, click *Connect*,
@@ -70,11 +85,15 @@ independent-reproduction evidence on aioquic.
 ## Repository layout
 
 ```
-server/                Patched aioquic reproducer
-  aioquic_server.py    Minimal WT echo server
-  patch.py             Applies the WEBTRANSPORT_MAX_SESSIONS patch to aioquic
-  run.sh               Setup venv + install + patch + launch
+server-aioquic/        Patched aioquic reproducer (Python)
+  demo.py              Minimal ASGI WT echo app
+  patch.py             Adds SETTINGS_WEBTRANSPORT_MAX_SESSIONS (0xc671706a) to aioquic
+  run.sh               Setup venv + install + patch + launch (:4436)
   requirements.txt
+server-quic-go/        Patched webtransport-go + quic-go reproducer (Go)
+  main.go              Adds the same SETTING via http3.Server.AdditionalSettings
+  run.sh               go build + launch (:4437)
+  go.mod
 client/
   index.html           Minimal WT bidi + datagram test page
 certs/
@@ -83,7 +102,6 @@ tests/
   safari.mjs           selenium-webdriver + safaridriver Safari driver
   chrome.mjs           Puppeteer Chrome control
 evidence/
-  safari-journal.txt   Server-side QUIC journal while Safari hangs
   safari-browser.txt   Browser event log from the Safari run
   chrome-browser.txt   Browser event log from the Chrome run
   webkit-source-notes.md    Relevant WebKit source quotes and file paths

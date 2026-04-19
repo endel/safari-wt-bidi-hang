@@ -103,8 +103,24 @@ Conclusion: the bidi-create hang is not a server-implementation idiosyncrasy.
 It reproduces the moment Safari's session negotiation succeeds, regardless of
 whether the server is written in Python (aioquic) or Zig (quic-zig).
 
-The repository's `server/patch.py` applies this exact patch; `server/run.sh`
-sets it up automatically.
+The repository's `server-aioquic/patch.py` applies this exact patch;
+`server-aioquic/run.sh` sets it up automatically.
+
+## Independent reproduction on quic-go + webtransport-go
+
+Same experiment on a third, completely different stack. webtransport-go's
+`ConfigureHTTP3Server` only adds `settingsEnableWebtransport = 1` at codepoint
+`0x2b603742` (see `webtransport-go@v0.10.0/server.go:42`) — it omits
+`SETTINGS_WEBTRANSPORT_MAX_SESSIONS`, so Safari rejects its sessions with
+`WebTransportError` just like stock aioquic. We add the missing setting via
+the public `http3.Server.AdditionalSettings` map (no source patch needed),
+and the result matches exactly:
+
+- Safari connects in ~20 ms ✓
+- Bidi `createBidirectionalStream()` **hangs identically** — "waiting..." forever
+- Chrome against the same server: bidi echo returns in ~10 ms
+
+The repository's `server-quic-go/main.go` is the full reproducer server.
 
 ## Why only some servers get Safari past session establishment
 
@@ -135,13 +151,17 @@ code path.
 | Target                                     | Safari session | Safari datagrams | Safari client bidi | Chrome |
 |--------------------------------------------|:-:|:-:|:-:|:-:|
 | quic-zig (this investigation)              | ✓ | ✓ | **HANG** | ✓ |
-| Patched aioquic (this repo)                | ✓ | ✓ | **HANG** | ✓ |
+| Patched aioquic (this repo, Python)        | ✓ | ✓ | **HANG** | ✓ |
+| Patched webtransport-go + quic-go (this repo, Go) | ✓ | ✓ | **HANG** | ✓ |
 | Stock aioquic                              | ✗ (reject) | — | — | ✓ |
-| quic-go webtransport-go v0.10.0            | ✗ (reject) | — | — | ✓ |
+| Stock webtransport-go v0.10.0              | ✗ (reject) | — | — | ✓ |
 | akaleapi `wt-ord.akaleapi.net:6161/echo`   | ✗ (no connect) | — | — | ✓ |
 
-Chrome is a clean control — bidi echo round-trips in ~215 ms against every
-one of these.
+Chrome round-trips bidi echo cleanly against every server (10 ms local, ~200 ms
+across the network). Safari only reaches any state beyond session-reject when
+the server advertises `SETTINGS_WEBTRANSPORT_MAX_SESSIONS` at the pre-draft-13
+codepoint `0xc671706a`, and whenever it does reach that state the bidi-create
+hang reproduces identically.
 
 ## Open questions for the WebKit team
 

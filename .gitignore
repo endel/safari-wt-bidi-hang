@@ -1,6 +1,8 @@
-server/.venv/
-server/.static/
-server/http3_server.py
+server-aioquic/.venv/
+server-aioquic/.static/
+server-aioquic/http3_server.py
+server-quic-go/wt-server
+server-quic-go/go.sum
 certs/server.crt
 certs/server.key
 node_modules/
