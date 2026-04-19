@@ -1,0 +1,14 @@
+{
+  "name": "safari-wt-bidi-hang",
+  "version": "1.0.0",
+  "description": "Minimal reproducer for Safari 26.4 WebTransport createBidirectionalStream() hang",
+  "type": "module",
+  "scripts": {
+    "test:safari": "node tests/safari.mjs",
+    "test:chrome": "node tests/chrome.mjs"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.0.0",
+    "selenium-webdriver": "^4.0.0"
+  }
+}

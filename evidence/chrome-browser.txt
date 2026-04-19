@@ -1,0 +1,15 @@
+Captured 2026-04-18 from Chrome (latest stable at time of writing) driven
+via Puppeteer against the same deployed server at
+https://echo.web-transport.dev:4440/ (CA-trusted Let's Encrypt).
+
+=== Browser event log (Chrome) ===
+20:34:45.062  connecting to https://echo.web-transport.dev:4440/ (CA trust)...
+20:34:45.649  connected in 585.9ms (full handshake)
+20:34:45.662  → Bidi: "Hello from browser!"
+20:34:45.855  ← Bidi: "Echo: Hello from browser!"
+
+Round-trip time for bidi echo: ~193 ms (mostly the ~80 ms RTT to the droplet in SFO).
+
+Against the local aioquic reproducer server (same server Safari hangs on),
+Chrome also round-trips bidi echo cleanly in single-digit ms, confirming the
+server is healthy.

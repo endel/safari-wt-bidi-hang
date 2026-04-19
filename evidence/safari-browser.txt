@@ -1,0 +1,27 @@
+Captured 2026-04-18 from Safari 26.4 (21624.1.16.11.4) driving
+client/index.html against server/run.sh (patched aioquic) on 127.0.0.1:4436.
+
+=== Browser event log (Safari) ===
+21:54:26.248  connecting to https://127.0.0.1:4436/wt (pinned cert hash)...
+21:54:26.263  connected in 14.0ms
+21:54:26.465  → Bidi: "hello"
+            [nothing further — response field sits at "waiting..."]
+
+
+Reproduces identically against the Zig WebTransport server at
+https://echo.web-transport.dev:4440/ (CA-trusted, no hash pin required),
+which is the live public reproducer:
+
+21:33:17.277  connecting to https://echo.web-transport.dev:4440/ (CA trust)...
+21:33:17.133  connected in 630.9ms (full handshake)
+21:33:17.205  → Bidi: "Hello from browser!"
+            [response field sits at "waiting..." indefinitely]
+
+Network observations (server-side, from the Zig run):
+  - QUIC connection: fully established, handshake confirmed
+  - Datagram frames round-trip (verified on a separate test)
+  - Server advertises initial_max_streams_bidi = 100 in QUIC transport params
+  - After bidi send, server sees ZERO new QUIC STREAM frames from Safari
+    (highest_peer_bidi_stream_id stays at 0)
+  - No QUIC STOP_SENDING, RESET_STREAM, or CONNECTION_CLOSE from Safari
+  - Safari's transport.closed promise does not reject

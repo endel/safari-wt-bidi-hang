@@ -1,0 +1,9 @@
+server/.venv/
+server/.static/
+server/http3_server.py
+certs/server.crt
+certs/server.key
+node_modules/
+package-lock.json
+*.log
+.DS_Store
